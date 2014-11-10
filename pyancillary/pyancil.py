@@ -19,10 +19,10 @@ def sendfd(sock, fd):
 
 # return's the socket fd. In case of error, returns -1
 def recvfd(sock):
-    recv_fd = cffi.new("int *")
+    recv_fd = ffi.new("int *")
     recv_fd[0] = 0
     ret = lib.ancil_recv_fd(ffi.cast("int", sock.fileno()), recv_fd)
     if ret == 0:
-        return int(recv_fd)
+        return int(recv_fd[0])
     else:
         return ret 
