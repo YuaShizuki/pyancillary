@@ -1,2 +1,2 @@
-form pyancil import send_fd, recv_fd
+from pyancil import sendfd, recvfd
 del pyancil

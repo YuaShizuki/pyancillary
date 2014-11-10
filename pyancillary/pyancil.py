@@ -8,9 +8,10 @@ ffi.cdef("""
     int ancil_recv_fd(int, int *);
 """)
 
-lib = ffi.verify( """ #include "ancillary.h" """, 
-                include_dirs=[path.dirname(path.abspath(__file__))],
-                sources=["fd_recv.c", "fd_send.c"])
+complete_path = path.dirname(path.abspath(__file__))
+lib = ffi.verify(""" #include "ancillary.h" """, 
+        sources=[complete_path+"/fd_recv.c", complete_path+"/fd_send.c"],
+        include_dirs=[complete_path])
 
 def sendfd(sock, fd):
     return lib.ancil_send_fd(ffi.cast("int", sock.fileno()), ffi.cast("int", fd))
