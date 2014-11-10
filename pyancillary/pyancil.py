@@ -1,3 +1,4 @@
+from os import path
 import socket
 from cffi import FFI
 ffi = FFI()
@@ -8,7 +9,7 @@ ffi.cdef("""
 """)
 
 lib = ffi.verify( """ #include "ancillary.h" """, 
-                include_dirs=[os.getcwd()],
+                include_dirs=[path.dirname(path.abspath(__file__))],
                 sources=["fd_recv.c", "fd_send.c"])
 
 def sendfd(sock, fd):
