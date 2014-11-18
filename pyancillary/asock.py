@@ -25,8 +25,7 @@ class ASockIoc(object):
             self.recv_type == _RCV_TYP_PATTERN
             self.patter = rcv_type_data 
 
-    def Ioc_Callback(self, sock):
-        assert sock == self.sock
+    def Ioc_Callback(self):
         if self.recv_type == self._RCV_TYP_SIMPLE:
             return self.sock.recv(65535)
         elif self.recv_type == _RCV_TYP_LEN:
@@ -41,7 +40,7 @@ class ASockIoc(object):
                 self.asock.buff = self.buff[indx:]
                 return self.buff[:indx]
         else:
-            raise ValueError("recv type is unknown in AsockIoc instance")
+            raise ValueError("recv type is unknown in ASockIoc instance")
 
 # Awesome socket. This package provides a async wrapper around the tranditional 
 # unix  socket. The Best parts are
@@ -62,6 +61,10 @@ class ASock(object):
         self.sock.bind((host, port))
         self.listen(10)
 
+    def connect(self, host, port):
+        # TODO connect is still synchronus make this async
+        return self.sock.connect((host, port))
+
     def fileno(self):
         return self.sock.fileno()
 
@@ -74,13 +77,11 @@ class ASock(object):
     def send(self, msg):
         self.sock.send(msg)
 
-    # ex: yield ASock_Instance.recv()
-    # getts the maximum data from the socket buffer
     def recv(self):
-        pass
-    
+        return ASockIoc(self, None, _buffer=self.buff) 
+
     def recv_p(self, pattern):
-        pass
+        return ASockIoc(self, pattern, _buffer=self.buff)
 
     def recv_l(self, length):
-        pass
+        return ASockIoc(self, None, _buffer=self.buff)
