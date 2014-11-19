@@ -11,34 +11,42 @@ class ASockIoc(object):
     _RCV_TYP_SIMPLE = 0
     _RCV_TYP_PATTERN = 1
     _RCV_TYP_LEN = 2
+    _RCV_TYP_ACCEPT_CONN = 3
 
-    def __init__(self, asock, rcv_typ_data=None, _buff=""):
+    def __init__(self, asock, rcv_typ, rcv_typ_data=None, _buff=""):
         self.sock = asock.sock        
         self.asock = asock
         self.buff = _buff
-        if rcv_typ_data == None:
-            self.recv_type = _RCV_TYP_SIMPLE
-        elif type(rcv_typ_data) is int:
-            self.recv_type = _RCV_TYP_LEN
-            self.recv_len = rcv_typ_data
-        elif type(rcv_typ_data) is str:
-            self.recv_type == _RCV_TYP_PATTERN
-            self.patter = rcv_type_data 
+        if rcv_typ == self._RCV_TYP_SIMPLE:
+            self.rcv_typ = self._RCV_TYP_SIMPLE
+        elif rcv_typ == self._RCV_TYP_LEN:
+            self.rcv_typ = self._RCV_TYP_LEN
+            self.rcv_len = rcv_typ_data
+        elif rcv_typ == self._RCV_TYP_PATTERN:
+            self.rcv_typ == self._RCV_TYP_PATTERN
+            self.patter = rcv_type_data
+        elif rcv_typ == self._RCV_TYP_ACCEPT_CONN:
+            self.rcv_typ = self._RCV_TYP_ACCEPT_CONN
+        else:
+            raise ValueError("unable to initialize ASockIoc with unknown rcv_typ")
 
     def Ioc_Callback(self):
-        if self.recv_type == self._RCV_TYP_SIMPLE:
+        if self.rcv_typ == self._RCV_TYP_SIMPLE:
             return self.sock.recv(65535)
-        elif self.recv_type == _RCV_TYP_LEN:
+        elif self.rcv_typ == self._RCV_TYP_LEN:
             self.buff += self.sock.recv(65535)
-            if len(self.buff) >= self.recv_len:
-                self.asock.buff = self.buff[self.recv_len:]
-                return self.buff[:self.recv_len]
-        elif self.recv_type == _RCV_TYP_PATTERN:
-            self.buff += self.sock.recv(65535)
+            if len(self.buff) >= self.rcv_len:
+                self.asock.buff = self.buff[self.rcv_len:]
+                return self.buff[:self.rcv_len]
+        elif self.rcv_typ == self._RCV_TYP_PATTERN:
+            self.buff += self.sock.rcv(65535)
             indx = self.buff.find(self.pattern)
             if indx != -1:
                 self.asock.buff = self.buff[indx:]
                 return self.buff[:indx]
+        elif self.rcv_typ == self._RCV_TYP_ACCEPT_CONN:
+            conn, addr = self.sock.accept()
+            return (ASock(fromIoc=conn), addr)
         else:
             raise ValueError("recv type is unknown in ASockIoc instance")
 
@@ -49,17 +57,19 @@ class ASockIoc(object):
 # => yield ASock_Instance.recv_p("pattern")   Asynchronus read till pattern encounterd.
 # enjoy
 class ASock(object):
-    
-    def __init__(self, isUnix=False):
+    def __init__(self, isUnix=False, fromIoc=None):
         self.buff = ""
-        if isUnix:
+        if fromIoc != None:
+            self.sock = fromIoc
+        elif isUnix:
             self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         else:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     
     def bind_and_listen(self, host, port):
+        self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.sock.bind((host, port))
-        self.listen(10)
+        self.sock.listen(10)
 
     def connect(self, host, port):
         # TODO connect is still synchronus make this async
@@ -69,7 +79,7 @@ class ASock(object):
         return self.sock.fileno()
 
     def accept(self):
-        return self.sock.accept()
+        return ASockIoc(self, ASockIoc._RCV_TYP_ACCEPT_CONN) 
 
     def close(self):
         return self.sock.close()
@@ -78,10 +88,11 @@ class ASock(object):
         self.sock.send(msg)
 
     def recv(self):
-        return ASockIoc(self, None, _buffer=self.buff) 
+        return ASockIoc(self, ASockIoc._RCV_TYP_SIMPLE, _buff=self.buff) 
 
-    def recv_p(self, pattern):
-        return ASockIoc(self, pattern, _buffer=self.buff)
+    def recv_p(self, p):
+        return ASockIoc(self, ASockIoc._RCV_TYP_PATTERN, rcv_typ_data=p, _buff=self.buff)
 
-    def recv_l(self, length):
-        return ASockIoc(self, None, _buffer=self.buff)
+    def recv_l(self, l):
+        return ASockIoc(self, ASockIoc._RCV_TYP_LEN, rcv_typ_data=l, _buff=self.buff)
+
