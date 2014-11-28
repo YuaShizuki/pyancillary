@@ -3,16 +3,18 @@ def parse(conn):
     packet = yield conn.recv_p("\r\n\r\n")
     if (packet == "") or (packet == None):
         yield None
+        return
     lines = packet.split("\r\n")
     
     if lines[0].startswith("GET"):
         req['method'] = "GET"
-    elif lines[0].startwith("POST"):
+    elif lines[0].startswith("POST"):
         req['method'] = "POST"
     
     wrds = lines[0].split(" ")
     if len(wrds) != 3:
         yield None
+        return
     req['url'] = wrds[1]
     req['version'] = wrds[2].strip()
 
@@ -20,8 +22,11 @@ def parse(conn):
         wrds = line.split(":")
         if len(wrds) != 2:
             yield None
+            return
         req[wrds[0].strip()] = wrds[1].strip()
+    
     yield req
+    return
 
 def keep_alive(req):
     if req['version'] == "HTTP/1.0": 

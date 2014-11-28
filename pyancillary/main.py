@@ -28,17 +28,17 @@ def tmp3(conn, addr):
         req = yield httpp.parse(conn)
         if req == None:
             conn.close()
+            #print "connection forced closed"
             return
         html = ""
         for key in req:
             html += "<p>%s ==&gt %s</p>" % (key, req[key])
         response = httpp.response(req['version'], html, httpp.keep_alive(req))
-        conn.send(html)
+        conn.send(response)
         if not httpp.keep_alive(req):
+            #print "closing connection"
             conn.close()
             return
-
-
 
 if __name__ == "__main__":
     ioloop.IoLoop().listen(80, tmp3)
