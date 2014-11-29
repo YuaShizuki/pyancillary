@@ -1,3 +1,5 @@
+import ancil
+import os
 import socket
 
 class ASIoc(object):
@@ -7,7 +9,7 @@ class ASIoc(object):
 
     def callback(self):
         try:
-            rcv = self.asock.sock.recv(65535)
+            rcv = self.asock.sock.recv(65536)
         except socket.error:
             rcv = ""
         return rcv
@@ -20,7 +22,7 @@ class ASIocLen(ASIoc):
 
     def callback(self):
         try:
-            rcv = self.asock.sock.recv(65535)
+            rcv = self.asock.sock.recv(65536)
         except socket.error:
             rcv = ""
         if rcv == "":
@@ -39,7 +41,7 @@ class ASIocPattern(ASIoc):
 
     def callback(self):
         try:
-            rcv =  self.asock.sock.recv(65535)
+            rcv =  self.asock.sock.recv(65536)
         except socket.error:
             rcv = ""
         if rcv == "":
@@ -53,7 +55,7 @@ class ASIocPattern(ASIoc):
             return r
 
 class ASock(object):
-    def __init__(self, sock=None, stype=socket.AF_INET):
+    def __init__(self, sock=None, fd=None, stype=socket.AF_INET):
         if sock != None:
             self.sock = sock
         else:
@@ -110,3 +112,18 @@ class ASock(object):
         buff = self.buff
         self.buff = ""
         return ASIocLen(self, buff, length)
+
+
+class AncilSock(ASock):
+    def __init__(self, fd, frm):
+        self.fd = fd
+        self.frm = frm
+        self.sock = socket.fromfd(fd, socket.AF_INET, socket.SOCK_STREAM)
+        self.buff = ""
+
+    def close(self):
+        #self.sock.shutdown(socket.SHUT_RDWR)
+        self.sock.close()
+        os.close(self.fd)
+        # close the socket on both ends
+        #self.frm.send("%d " % fd)
