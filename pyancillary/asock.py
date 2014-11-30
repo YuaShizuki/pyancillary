@@ -1,10 +1,12 @@
 import os
 import socket
+import selectors
 
 class ASIoc(object):
     def __init__(self, asock, buff):
         self.asock = asock
         self.buff = buff
+        self.event = selectors.EVENT_READ
 
     def callback(self):
         try:
@@ -52,6 +54,16 @@ class ASIocPattern(ASIoc):
             self.asock.buff = self.buff[indx+len(self.pattern):]
             return r
 
+
+class ASIocConnect(ASIoc):
+    def __init__(self, asock):
+        super(ASIocConnect, self).__init(asock, "")
+        self.event = selectors.EVENT_WRITE
+
+    def callback(self):
+        return True
+
+
 class ASock(object):
     def __init__(self, sock=None, stype=socket.AF_INET):
         if sock != None:
@@ -66,8 +78,12 @@ class ASock(object):
     def close(self):
         return self.sock.close()
 
-    def connect(self):
-        return self.sock.connect()
+    def connect(self, host, port):
+        self.sock.setblocking(0)
+        if self.sock.connect_ex((host, port)) = 0:
+            self.sock.setblocking()
+            return ASIocConnect(self)
+        return False
 
     def fileno(self):
         return self.sock.fileno()

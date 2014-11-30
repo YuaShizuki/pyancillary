@@ -48,7 +48,7 @@ class ExStack(object):
     def attachSocket(self, s, prev):
         assert s.asioc != None
         s.prev = prev
-        self.selector.register(s.asioc.asock.sock, selectors.EVENT_READ, s)
+        self.selector.register(s.asioc.asock.sock, s.asioc.event, s)
 
     def follow(self, s, prev):
         s.prev = prev
