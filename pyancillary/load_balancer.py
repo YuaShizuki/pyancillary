@@ -17,7 +17,7 @@ class LoadBalancer(object):
             self.indx = 0
         else:
             self.indx += 1
-        conn.close()
+        #conn.close()
         yield 0
 
     def close_time_wait_sock(self, sock):

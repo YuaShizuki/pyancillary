@@ -95,6 +95,7 @@ class IoLoop(object):
                 if key.fileobj == self.server_sock:
                     if self.running_on_ancillary:
                         fd = ancil.recvfd(self.server_sock)
+                        print "fd is ==> %d" % fd
                         conn = asock.AncilSock(fd, self.server_sock)
                         g = self.server_core_handler(conn, None)
                     else:
