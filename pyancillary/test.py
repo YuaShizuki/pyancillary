@@ -1,5 +1,5 @@
 import httpp
-import server
+import load_balancer
 import os
 
 def handler(conn, addr):
@@ -16,6 +16,21 @@ def handler(conn, addr):
             conn.close()
             return
 
+def main(conn, addr):
+    print "%d" % os.getpid()
+    while True:
+        request = yield httpp.parse(conn)
+        if request == None:
+            conn.close()
+            return
+        html = "hello world\n"
+        header = "%s 200 OK\r\nContent-Type: text/html\r\nContent-Lenght %d\r\n\r\n%s"
+        response = header % (request['version'], len(html), html)
+        conn.send(response)
+        if not httpp.keep_alive(request):
+            conn.close()
+            return
+
 if __name__ == "__main__":
-    server.StartMultiProcessServer(80, handler)
+    load_balancer.LoadBalancerLaunch(80, main)
 

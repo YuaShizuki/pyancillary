@@ -1,4 +1,3 @@
-import ancil
 import asock
 import socket
 import types
@@ -82,9 +81,6 @@ class ExStack(object):
 class IoLoop(object):
     def __init__(self):
         self.selector = selectors.DefaultSelector()
-        self.server_sock = None
-        self.server_core_handler = None
-        self.running_on_ancillary = False
         self.ex_stack = ExStack(self.selector)
     
     def run(self):
@@ -92,46 +88,22 @@ class IoLoop(object):
             events = self.selector.select()
             for event in events:
                 key, _  = event
-                if key.fileobj == self.server_sock:
-                    if self.running_on_ancillary:
-                        fd = ancil.recvfd(self.server_sock)
-                        print "fd is ==> %d" % fd
-                        conn = asock.AncilSock(fd, self.server_sock)
-                        g = self.server_core_handler(conn, None)
-                    else:
-                        conn, addr = self.server_sock.accept()
-                        g = self.server_core_handler(asock.ASock(sock=conn), addr)
-                    s = Slate(gen=g)
-                    self.ex_stack.follow(s, None)
-                else:
-                    if isinstance(key.data, Slate):
-                        s = key.data
-                        resp = s.asioc.callback()
-                        if resp != None:
-                            self.selector.unregister(key.fileobj)
-                            self.ex_stack.result(s.prev, resp)
-                    elif hasattr(key.data, "__call__"):
-                        key.data(key.fileobj)
+                if isinstance(key.data, Slate):
+                    s = key.data
+                    resp = s.asioc.callback()
+                    if resp != None:
+                        self.selector.unregister(key.fileobj)
+                        self.ex_stack.result(s.prev, resp)
+                elif hasattr(key.data, "__call__"):
+                    key.data(key.fileobj)
                     
-    def listen(self, port, handler):
-        self.server_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.server_sock.bind(('0.0.0.0', port))
-        self.server_sock.listen(10)
-        self.server_core_handler = handler
-        self.selector.register(self.server_sock, selectors.EVENT_READ, None)
-        self.run()
-
-    def run_on_ancillary(self, sock, handler):
-        self.running_on_ancillary = True
-        self.server_sock = sock
-        self.server_core_handler = handler
-        self.selector.register(self.server_sock, selectors.EVENT_READ, None)
-        self.run()
-
     def register_sock(self, sock, handler):
-        self.selector.register(sock, selectos.EVENT_READ, handler)
+        self.selector.register(sock, selectors.EVENT_READ, handler)
 
     def unregister_sock(self, sock):
         self.selector.unregister(sock)
-
+    
+    def run_gen(self, gf, *args, **kwargs):
+        g = gf(*args, **kwargs)
+        s = Slate(gen=g)
+        self.ex_stack.follow(s, None)
