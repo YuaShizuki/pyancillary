@@ -24,7 +24,7 @@ def main(conn, addr):
             conn.close()
             return
         html = "hello world\n"
-        header = "%s 200 OK\r\nContent-Type: text/html\r\nContent-Lenght %d\r\n\r\n%s"
+        header = "%s 200 OK\r\nContent-Type: text/html\r\nContent-Lenght: %d\r\n\r\n%s"
         response = header % (request['version'], len(html), html)
         conn.send(response)
         if not httpp.keep_alive(request):
