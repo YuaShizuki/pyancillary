@@ -57,7 +57,7 @@ class ASIocPattern(ASIoc):
 
 class ASIocConnect(ASIoc):
     def __init__(self, asock):
-        super(ASIocConnect, self).__init(asock, "")
+        super(ASIocConnect, self).__init__(asock, "")
         self.event = selectors.EVENT_WRITE
 
     def callback(self):
@@ -80,10 +80,9 @@ class ASock(object):
 
     def connect(self, host, port):
         self.sock.setblocking(0)
-        if self.sock.connect_ex((host, port)) = 0:
-            self.sock.setblocking()
-            return ASIocConnect(self)
-        return False
+        self.sock.connect_ex((host, port))
+        self.sock.setblocking(1)
+        return ASIocConnect(self)
 
     def fileno(self):
         return self.sock.fileno()

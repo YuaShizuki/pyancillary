@@ -1,22 +1,31 @@
-import http
-import load_balancer
+import pyancillary.load_balancer as lb
+import pyancillary.asock as asock
 import os
 
-def main(conn, addr):
-    print "%d" % os.getpid()
-    while True:
-        request = yield http.parse(conn)
-        if request == None:
-            conn.close()
-            return
-        html = "hello world\n"
-        header = "%s 200 OK\r\nContent-Type: text/html\r\nContent-Lenght: %d\r\n\r\n%s"
-        response = header % (request['version'], len(html), html)
-        conn.send(response)
-        if not http.keep_alive(request):
-            conn.close()
-            return
+
+def extract_content_length(header):
+    keys = header.split("\r\n")
+    for k in keys:
+        if k.startswith("Content-Length:"):
+            return int(k.split(": ")[1].strip())
+
+
+def main(connection, address):
+    get = asock.ASock()
+    print "proxy recived connection on pid => %d" % os.getpid()
+    yield get.connect("pypy.org", 80)
+    #if not is_connected:
+    #    connection.send("cant connect to pypy.org")
+    get.send("GET / HTTP/1.1\r\nHost: pypy.org\r\n\r\n")
+    header =  yield get.recv_p("\r\n\r\n")
+    length = extract_content_length(header)
+    content = yield get.recv_l(length)
+    get.close()
+    connection.send(header+content)
+    connection.close()
+    print "completed transaction on pid => %d" % os.getpid()
+
 
 if __name__ == "__main__":
-    load_balancer.LoadBalancerLaunch(80, main)
+    lb.LoadBalancerLaunch(80, main)
 
