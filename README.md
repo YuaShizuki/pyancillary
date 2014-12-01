@@ -33,3 +33,13 @@ def Handler(connection, address):
 if __name__ == "__main__":
     lb.LoadBalancerLaunch(80, Handler)
 ```
+explanation:
+------------
+*   `def Handler(connection, address)` is the function called for every new connection
+accepted on port 80 (http). 
+
+*   `connection` is a asock (Awesome Socket) instance. Asock is detailed in asock.py
+
+*   `yield connection.recv_p('\r\n\r\n')` yields when patter '\r\n\r\n' is recived in socket buffer. Hence in this case recives data till the end of http header is recived.
+
+*   thats it folks enjoy, email me at yuashizuki@gmail.com
