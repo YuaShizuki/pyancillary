@@ -1,5 +1,7 @@
 pyancillary
 ===========
+Pyancillary is async networking library for python, best performs on pypy.
 
-Pyancillary is async networking library for python, best performance is on pypy
- 
+why?
+---
+pyancillary is multiprocess and concurent 

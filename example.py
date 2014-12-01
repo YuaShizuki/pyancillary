@@ -3,6 +3,8 @@ import pyancillary.asock as asock
 import os
 
 
+#this script acts as a proxy for pypy.org
+
 def extract_content_length(header):
     keys = header.split("\r\n")
     for k in keys:
@@ -14,8 +16,6 @@ def main(connection, address):
     get = asock.ASock()
     print "proxy recived connection on pid => %d" % os.getpid()
     yield get.connect("pypy.org", 80)
-    #if not is_connected:
-    #    connection.send("cant connect to pypy.org")
     get.send("GET / HTTP/1.1\r\nHost: pypy.org\r\n\r\n")
     header =  yield get.recv_p("\r\n\r\n")
     length = extract_content_length(header)
