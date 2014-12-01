@@ -10,7 +10,7 @@ intalltion:
 ----------
 ```bash
 $ git clone https://github.com/YuaShizuki/pyancillary.git
-$ pypy setup.py
+$ pypy setup.py install
 ```
 example:
 -------
