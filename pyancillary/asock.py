@@ -112,7 +112,7 @@ class ASIocPattern(ASIoc):
 
     def callback(self):
         try:
-            rcv =  self.asock.sock.recv(65536)
+            rcv = self.asock.sock.recv(65536)
         except socket.error:
             rcv = ""
         if rcv == "":
@@ -121,9 +121,12 @@ class ASIocPattern(ASIoc):
         self.buff += rcv
         indx = self.buff.find(self.pattern)
         if indx != -1:
-            r = self.buff[:indx+len(self.pattern)]
-            self.asock.buff = self.buff[indx+len(self.pattern):]
+            r = self.buff[:indx + len(self.pattern)]
+            self.asock.buff = self.buff[indx + len(self.pattern):]
             return r
+        elif len(self.buff) >= 4096:
+            self.asock.buff = self.buff
+            return ""
 
 
 class ASIocConnect(ASIoc):
