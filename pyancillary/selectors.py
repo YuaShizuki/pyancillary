@@ -310,8 +310,8 @@ class SelectSelector(_BaseSelectorImpl):
         ready = []
         try:
             r, w, _ = self._select(self._readers, self._writers, [], timeout)
-        except InterruptedError:
-            return ready
+        except KeyboardInterrupt as e:
+            raise e
         r = set(r)
         w = set(w)
         for fd in r | w:
@@ -363,8 +363,9 @@ if hasattr(select, 'poll'):
             ready = []
             try:
                 fd_event_list = self._poll.poll(timeout)
-            except InterruptedError:
-                return ready
+            except KeyboardInterrupt as e:
+                raise e
+                # return ready
             for fd, event in fd_event_list:
                 events = 0
                 if event & ~select.POLLIN:
@@ -423,8 +424,9 @@ if hasattr(select, 'epoll'):
             ready = []
             try:
                 fd_event_list = self._epoll.poll(timeout, max_ev)
-            except InterruptedError:
-                return ready
+            except KeyboardInterrupt as e:
+                raise e
+                # return ready
             for fd, event in fd_event_list:
                 events = 0
                 if event & ~select.EPOLLIN:
@@ -481,8 +483,9 @@ if hasattr(select, 'devpoll'):
             ready = []
             try:
                 fd_event_list = self._devpoll.poll(timeout)
-            except InterruptedError:
-                return ready
+            except KeyboardInterrupt as e:
+                raise e
+                # return ready
             for fd, event in fd_event_list:
                 events = 0
                 if event & ~select.POLLIN:
@@ -551,8 +554,9 @@ if hasattr(select, 'kqueue'):
             ready = []
             try:
                 kev_list = self._kqueue.control(None, max_ev, timeout)
-            except InterruptedError:
-                return ready
+            except KeyboardInterrupt as e:
+                raise e
+                # return ready
             for kev in kev_list:
                 fd = kev.ident
                 flag = kev.filter
