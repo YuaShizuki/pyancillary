@@ -1,5 +1,6 @@
 pyancillary
 ===========
+[![Gitter](https://badges.gitter.im/Join Chat.svg)](https://gitter.im/YuaShizuki/pyancillary?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 Pyancillary is async networking library for python, best performs on pypy.
 
 why?
